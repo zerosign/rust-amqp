@@ -25,9 +25,6 @@ let mut session = Session::open_url("amqp://localhost//").unwrap();
 let mut channel = session.open_channel(1).unwrap();
 ```
 
-> Note: This library supports TLS connections, via OpenSSL.
-> However, this is an optional feature that is enabled by default but can be disabled at build-time (via `cargo --no-default-features` on the command-line, or with `default-features = false` in your `Cargo.toml`).
-
 ### Declaring queue:
 ```rust
 //The arguments come in following order:
@@ -38,7 +35,7 @@ let queue_declare = channel.queue_declare("my_queue_name", false, true, false, f
 ### Publishing message:
 ```rust
 channel.basic_publish("", "my_queue_name", true, false,
-    protocol::basic::BasicProperties{ content_type: Some("text".to_string()), ..Default::default()}, (b"Hello from rust!").to_vec());
+	protocol::basic::BasicProperties{ content_type: Some("text".to_string()), ..Default::default()}, (b"Hello from rust!").to_vec());
 ```
 
 This will send message: "Hello from rust!" to the queue named "my_queue_name".

@@ -14,20 +14,11 @@ readme = "Readme.md"
 
 name = "amqp"
 
-[features]
-tls = ["openssl"]
-default = ["tls"]
-
 [dependencies]
 env_logger = "0.3"
 log = "0.3"
 url = "1.2"
 amq-proto = "0.1.0"
-
-[dependencies.openssl]
-version = "0.7.*"
-optional = true
-features = ["tlsv1_1", "tlsv1_2"]
 
 [dev-dependencies]
 # clippy  = "*"

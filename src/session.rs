@@ -17,17 +17,12 @@ use std::cmp;
 
 use url::{Url, percent_encoding};
 
-pub const AMQPS_PORT: u16 = 5671;
 pub const AMQP_PORT: u16 = 5672;
 
 const CHANNEL_BUFFER_SIZE: usize = 100;
 
 #[derive(Debug)]
-pub enum AMQPScheme {
-    AMQP,
-    #[cfg(feature = "tls")]
-    AMQPS,
-}
+pub enum AMQPScheme { AMQP }
 
 #[derive(Debug)]
 pub struct Options {
@@ -284,8 +279,6 @@ impl Session {
 
 fn get_connection(options: &Options) -> AMQPResult<Connection> {
     match options.scheme {
-        #[cfg(feature = "tls")]
-        AMQPScheme::AMQPS => Connection::open_tls(&options.host, options.port).map_err(From::from),
         AMQPScheme::AMQP => Connection::open(&options.host, options.port).map_err(From::from),
     }
 }
@@ -321,8 +314,6 @@ fn parse_url(url_string: &str) -> AMQPResult<Options> {
     let password = url.password().map_or(String::from(default.password), ToString::to_string);
     let (scheme, default_port) = match url.scheme() {
         "amqp" => (AMQPScheme::AMQP, AMQP_PORT),
-        #[cfg(feature = "tls")]
-        "amqps" => (AMQPScheme::AMQPS, AMQPS_PORT),
         unknown_scheme => {
             return Err(AMQPError::SchemeError(format!("Unknown scheme: {:?}", unknown_scheme)))
         }

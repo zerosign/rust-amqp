@@ -3,9 +3,6 @@ use std::{io, error, fmt};
 use url;
 use amq_proto;
 
-#[cfg(feature = "tls")]
-use openssl;
-
 #[derive(Debug, Clone)]
 pub enum AMQPError {
     IoError(io::ErrorKind),
@@ -63,13 +60,6 @@ impl From<url::ParseError> for AMQPError {
 
 impl From<amq_proto::Error> for AMQPError {
     fn from(err: amq_proto::Error) -> AMQPError {
-        AMQPError::Protocol(format!("{}", err))
-    }
-}
-
-#[cfg(feature = "tls")]
-impl From<openssl::ssl::error::SslError> for AMQPError {
-    fn from(err: openssl::ssl::error::SslError) -> AMQPError {
         AMQPError::Protocol(format!("{}", err))
     }
 }

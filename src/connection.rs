@@ -2,17 +2,10 @@ use std::net::TcpStream;
 use std::io::Write;
 use std::cmp;
 
-#[cfg(feature = "tls")]
-use openssl::ssl::{SslContext, SslMethod, SslStream};
-
 use amqp_error::AMQPResult;
 use amq_proto::{Frame, FrameType, FramePayload};
 
-enum AMQPStream {
-    Cleartext(TcpStream),
-    #[cfg(feature = "tls")]
-    Tls(SslStream<TcpStream>),
-}
+enum AMQPStream { Cleartext(TcpStream) }
 
 pub struct Connection {
     socket: AMQPStream,
@@ -28,30 +21,11 @@ impl Clone for Connection {
                     frame_max_limit: self.frame_max_limit,
                 }
             }
-            #[cfg(feature = "tls")]
-            AMQPStream::Tls(ref stream) => {
-                Connection {
-                    socket: AMQPStream::Tls(stream.try_clone().unwrap()),
-                    frame_max_limit: self.frame_max_limit,
-                }
-            }
         }
     }
 }
 
 impl Connection {
-    #[cfg(feature = "tls")]
-    pub fn open_tls(host: &str, port: u16) -> AMQPResult<Connection> {
-        let socket = try!(TcpStream::connect((host, port)));
-        let ctx = try!(SslContext::new(SslMethod::Sslv23));
-        let mut tls_socket = try!(SslStream::connect(&ctx, socket));
-        try!(init_connection(&mut tls_socket));
-        Ok(Connection {
-            socket: AMQPStream::Tls(tls_socket),
-            frame_max_limit: 131072,
-        })
-    }
-
     pub fn open(host: &str, port: u16) -> AMQPResult<Connection> {
         let mut socket = try!(TcpStream::connect((host, port)));
         try!(init_connection(&mut socket));
@@ -86,9 +60,7 @@ impl Connection {
 
     pub fn read(&mut self) -> AMQPResult<Frame> {
         match self.socket {
-            AMQPStream::Cleartext(ref mut stream) => Frame::decode(stream).map_err(From::from),
-            #[cfg(feature = "tls")]
-            AMQPStream::Tls(ref mut stream) => Frame::decode(stream).map_err(From::from),
+            AMQPStream::Cleartext(ref mut stream) => Frame::decode(stream).map_err(From::from)
         }
     }
 
@@ -97,8 +69,6 @@ impl Connection {
             AMQPStream::Cleartext(ref mut stream) => {
                 Ok(try!(stream.write_all(&try!(frame.encode()))))
             }
-            #[cfg(feature = "tls")]
-            AMQPStream::Tls(ref mut stream) => Ok(try!(stream.write_all(&try!(frame.encode())))),
         }
     }
 }

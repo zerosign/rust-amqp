@@ -82,9 +82,6 @@
 
 extern crate url;
 
-#[cfg(feature = "tls")]
-extern crate openssl;
-
 #[macro_use]
 extern crate log;
 extern crate amq_proto;
